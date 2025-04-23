@@ -2,21 +2,42 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import datetime
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 
 st.title("Crime Data Analysis & Prediction App")
 
-# Load data
 @st.cache_data
 def load_data():
-    return pd.read_csv("chicago_crime_sample.csv")
+    df = pd.read_csv("chicago_crime_sample.csv")
+    df['date'] = pd.to_datetime(df['date'])
+    df['day_of_week'] = df['date'].dt.dayofweek  # 0 = Monday, 6 = Sunday
+    return df
 
 df = load_data()
 
-st.subheader("Raw Data Sample")
-st.write(df.sample(10))
+st.subheader("Sample Data with Features")
+st.write(df[['hour', 'day_of_week', 'primary_type']].head())
 
-# Simple prediction mockup (based on most common crimes at specific hours)
+# Model training
+st.subheader("Train Crime Prediction Model")
+
+X = df[['hour', 'day_of_week']]
+y = df['primary_type']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+preds = model.predict(X_test)
+
+acc = accuracy_score(y_test, preds)
+st.write(f"Model Accuracy: {acc:.2f}")
+
+# Prediction
 st.subheader("Predict Crime Type")
-hour = st.slider("Select Hour (0–23)", 0, 23, 12)
-common_crime = df[df['hour'] == hour]['primary_type'].mode()[0]
-st.write(f"Most likely crime at {hour}:00 is *{common_crime}*")
+hour = st.slider("Hour (0–23)", 0, 23, 12)
+day = st.slider("Day of the Week (0 = Mon, 6 = Sun)", 0, 6, 3)
+
+prediction = model.predict([[hour, day]])
+st.write(f"Predicted Crime: *{prediction[0]}*")
