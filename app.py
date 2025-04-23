@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import datetime
+import joblib
+import os
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
@@ -22,17 +24,30 @@ st.write(df[['hour', 'day_of_week', 'primary_type']].head())
 
 # Model training
 st.subheader("Train Crime Prediction Model")
+import joblib
+import os
 
-X = df[['hour', 'day_of_week']]
-y = df['primary_type']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+# Model training
+st.subheader("Train Crime Prediction Model")
 
-model = RandomForestClassifier()
-model.fit(X_train, y_train)
-preds = model.predict(X_test)
+model_file = "model.pkl"
 
-acc = accuracy_score(y_test, preds)
-st.write(f"Model Accuracy: {acc:.2f}")
+if os.path.exists(model_file):
+    model = joblib.load(model_file)
+    st.success("Model loaded from saved file.")
+else:
+    X = df[['hour', 'day_of_week']]
+    y = df['primary_type']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    model = RandomForestClassifier()
+    model.fit(X_train, y_train)
+    joblib.dump(model, model_file)  # Save model
+    st.success("Model trained and saved.")
+
+    preds = model.predict(X_test)
+    acc = accuracy_score(y_test, preds)
+    st.write(f"Model Accuracy: {acc:.2f}")
 
 # Prediction
 st.subheader("Predict Crime Type")
@@ -42,7 +57,7 @@ day = st.selectbox("Select Day of the Week", day_names)
 day_index = day_names.index(day)
 
 prediction = model.predict([[hour, day_index]])
-st.write(f"*Predicted Crime:* {prediction[0]}")
+st.write(f"**Predicted Crime:** {prediction[0]}")
 
 st.subheader("Crime Count by Hour")
 hourly_crimes = df.groupby('hour')['primary_type'].count()
