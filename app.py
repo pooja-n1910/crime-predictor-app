@@ -36,8 +36,14 @@ st.write(f"Model Accuracy: {acc:.2f}")
 
 # Prediction
 st.subheader("Predict Crime Type")
-hour = st.slider("Hour (0–23)", 0, 23, 12)
-day = st.slider("Day of the Week (0 = Mon, 6 = Sun)", 0, 6, 3)
+hour = st.slider("Select Hour (0–23)", 0, 23, 12)
+day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+day = st.selectbox("Select Day of the Week", day_names)
+day_index = day_names.index(day)
 
-prediction = model.predict([[hour, day]])
-st.write(f"Predicted Crime: *{prediction[0]}*")
+prediction = model.predict([[hour, day_index]])
+st.write(f"*Predicted Crime:* {prediction[0]}")
+
+st.subheader("Crime Count by Hour")
+hourly_crimes = df.groupby('hour')['primary_type'].count()
+st.bar_chart(hourly_crimes)
