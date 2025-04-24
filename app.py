@@ -28,7 +28,7 @@ df = load_data()
 st.subheader("Train Crime Prediction Model")
 
 X = df[['hour', 'day_of_week']]
-y = df['primary_type']
+y = df['Primary Type']
 
 # Encode labels
 from sklearn.preprocessing import LabelEncoder
