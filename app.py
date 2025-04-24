@@ -15,10 +15,10 @@ def load_data():
     df = pd.read_csv("chicago_crime_full.csv")
     df = df[['Date', 'Primary Type', 'Latitude', 'Longitude']]
     df.dropna(inplace=True)
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
-    df = df.dropna(subset=['date'])
-    df['hour'] = df['date'].dt.hour
-    df['day_of_week'] = df['date'].dt.dayofweek  # 0=Mon, 6=Sun
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    df = df.dropna(subset=['Date'])
+    df['hour'] = df['Date'].dt.hour
+    df['day_of_week'] = df['Date'].dt.dayofweek  # 0=Mon, 6=Sun
     return df
 
 # Load data
