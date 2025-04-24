@@ -62,10 +62,6 @@ acc = accuracy_score(y_test, y_pred)
 
 st.write("Model Accuracy:" round(acc,2))
 
-# Save model
-model_file = "model.pkl"
-joblib.dump(model, model_file)
-
 # Step 4: Try Predicting a Crime Type
 st.subheader("Try Predicting a Crime Type")
 
@@ -86,3 +82,8 @@ input_df = pd.DataFrame({
 predicted_encoded = model.predict(input_df)[0]
 predicted_crime = le.inverse_transform([predicted_encoded])[0]
 st.success(f"Predicted Crime Type: {predicted_crime}")
+
+# Save model
+model_file = "model.pkl"
+joblib.dump(model, model_file)
+
