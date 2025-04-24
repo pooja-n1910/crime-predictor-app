@@ -1,2 +1,2 @@
 # Crime Predictor App
-Streamlit app to analyze and predict crime types based on time.
+click on to the link to analyze and predict crime types based on time.
