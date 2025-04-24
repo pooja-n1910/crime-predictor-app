@@ -36,6 +36,7 @@ if os.path.exists(model_file):
     model = joblib.load(model_file)
     st.success("Model loaded from saved file.")
 else:
+    df = load_data()
     X = df[['hour', 'day_of_week']]
     y = df['primary_type']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
