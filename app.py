@@ -61,28 +61,24 @@ y_pred = model.predict(X_test)
 acc = accuracy_score(y_test, y_pred)
 
 st.write("Model Accuracy:" round(acc,2))
-
-# Step 4: Try Predicting a Crime Type
+# Step 4: Predict Crime Type
 st.subheader("Try Predicting a Crime Type")
 
-input_hour = st.slider("Select Hour of Day", 0, 23, 12)
+input_hour = st.slider("Select Hour of the Day", 0, 23, 12)
 input_day = st.selectbox("Select Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
 
-# Map day to number
-day_map = {
-    "Monday": 0, "Tuesday": 1, "Wednesday": 2,
-    "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6
-}
-input_df = pd.DataFrame({
+# Map day to integer
+day_to_int = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+input_data = pd.DataFrame({
     'hour': [input_hour],
-    'day_of_week': [day_map[input_day]]
+    'day_of_week': [day_to_int[input_day]]
 })
 
-# Predict and decode
-predicted_encoded = model.predict(input_df)[0]
-predicted_crime = le.inverse_transform([predicted_encoded])[0]
-st.success(f"Predicted Crime Type: {predicted_crime}")
+# Make prediction
+prediction_encoded = model.predict(input_data)[0]
+prediction_label = le.inverse_transform([prediction_encoded])[0]
 
+st.success(f"Predicted Crime Type: {prediction_label}")
 # Save model
 model_file = "model.pkl"
 joblib.dump(model, model_file)
