@@ -12,15 +12,16 @@ st.title("Crime Data Analysis & Prediction App")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("chicago_crime_sample.csv")
-    df['date'] = pd.to_datetime(df['date'])
-    df['day_of_week'] = df['date'].dt.dayofweek  # 0 = Monday, 6 = Sunday
+df = pd.read_csv("chicago_crime_full.csv")
+    df = df[['date', 'primary_type', 'latitude', 'longitude']]
+    df.dropna(inplace=True)
+
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    df = df.dropna(subset=['date'])
+    df['hour'] = df['date'].dt.hour
+    df['day_of_week'] = df['date'].dt.dayofweek  # 0=Mon, 6=Sun
+
     return df
-
-df = load_data()
-
-st.subheader("Sample Data with Features")
-st.write(df[['hour', 'day_of_week', 'primary_type']].head())
 
 # Model training
 st.subheader("Train Crime Prediction Model")
@@ -58,6 +59,12 @@ day_index = day_names.index(day)
 
 prediction = model.predict([[hour, day_index]])
 st.write(f"**Predicted Crime:** {prediction[0]}")
+# Show crime map
+st.subheader("Crime Locations Map")
+
+# Optional: limit number of points shown for performance
+st.map(df[['latitude', 'longitude']].sample(500))
+
 
 st.subheader("Crime Count by Hour")
 hourly_crimes = df.groupby('hour')['primary_type'].count()
