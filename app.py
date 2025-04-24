@@ -13,7 +13,7 @@ st.title("Crime Data Analysis & Prediction App")
 @st.cache_data
 def load_data():
     df = pd.read_csv("chicago_crime_full.csv")
-    df = df[['date', 'primary_type', 'latitude', 'longitude']]
+    df = df[['Date', 'Primary Type', 'Latitude', 'Longitude']]
     df.dropna(inplace=True)
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     df = df.dropna(subset=['date'])
