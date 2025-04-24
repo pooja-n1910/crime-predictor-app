@@ -41,6 +41,25 @@ day_crime = df['day_of_week'].value_counts().sort_index()
 day_crime.index = [days[i] for i in day_crime.index]
 st.bar_chart(day_crime)
 
+# Step 4: Predict Crime Type
+st.subheader("Try Predicting a Crime Type")
+
+input_hour = st.slider("Select Hour of the Day", 0, 23, 12)
+input_day = st.selectbox("Select Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+
+# Map day to integer
+day_to_int = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+input_data = pd.DataFrame({
+    'hour': [input_hour],
+    'day_of_week': [day_to_int[input_day]]
+})
+
+# Make prediction
+prediction_encoded = model.predict(input_data)[0]
+prediction_label = le.inverse_transform([prediction_encoded])[0]
+
+st.success(f"Predicted Crime Type: {prediction_label}")
+
 # Model training
 st.subheader("Train Crime Prediction Model")
 
@@ -61,24 +80,7 @@ y_pred = model.predict(X_test)
 acc = accuracy_score(y_test, y_pred)
 
 st.write("Model Accuracy:" round(acc,2))
-# Step 4: Predict Crime Type
-st.subheader("Try Predicting a Crime Type")
 
-input_hour = st.slider("Select Hour of the Day", 0, 23, 12)
-input_day = st.selectbox("Select Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-
-# Map day to integer
-day_to_int = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
-input_data = pd.DataFrame({
-    'hour': [input_hour],
-    'day_of_week': [day_to_int[input_day]]
-})
-
-# Make prediction
-prediction_encoded = model.predict(input_data)[0]
-prediction_label = le.inverse_transform([prediction_encoded])[0]
-
-st.success(f"Predicted Crime Type: {prediction_label}")
 # Save model
 model_file = "model.pkl"
 joblib.dump(model, model_file)
