@@ -1,87 +1,51 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
-import datetime
-import joblib
-import os
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+import streamlit as st import pandas as pd import joblib from sklearn.preprocessing import LabelEncoder from sklearn.ensemble import RandomForestClassifier
 
-st.title("Crime Data Analysis & Prediction App")
+Load data
 
-@st.cache_data
-def load_data():
-    df = pd.read_csv("chicago_crime_full.csv")
-    df = df[['Date', 'Primary Type', 'Latitude', 'Longitude']]
-    df.dropna(inplace=True)
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-    df = df.dropna(subset=['Date'])
-    df['hour'] = df['Date'].dt.hour
-    df['day_of_week'] = df['Date'].dt.dayofweek  # 0=Mon, 6=Sun
-    return df
+df = pd.read_csv("chicago_crime_full.csv")
 
-# Load data
-df = load_data()
+Feature engineering
 
-# step1:crime type distribution
-st.subheader("Crime Type Distribution")
-crime_counts = df['Primary Type'].value_counts()
-st.bar_chart(crime_counts)
+df['Date'] = pd.to_datetime(df['Date']) df['hour'] = df['Date'].dt.hour df['day_of_week'] = df['Date'].dt.dayofweek  # Monday=0
 
-# Step 2: Hourly Crime Pattern
-st.subheader("Hourly Crime Pattern")
-hourly_crime = df['hour'].value_counts().sort_index()
-st.line_chart(hourly_crime)
+Select features and target
 
-# Step 3: Crimes by Day of the Week
-st.subheader("Crimes by Day of the Week")
-days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-day_crime = df['day_of_week'].value_counts().sort_index()
-day_crime.index = [days[i] for i in day_crime.index]
-st.bar_chart(day_crime)
+features = ['hour', 'day_of_week', 'Domestic', 'Arrest', 'Community Area', 'Location Description'] df = df.dropna(subset=features + ['Primary Type']) X = df[features] y = df['Primary Type']
 
-# Step 4: Predict Crime Type
-st.subheader("Try Predicting a Crime Type")
+Encode categorical features
 
-input_hour = st.slider("Select Hour of the Day", 0, 23, 12)
-input_day = st.selectbox("Select Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+le_location = LabelEncoder() X['Location Description'] = le_location.fit_transform(X['Location Description'])
 
-# Map day to integer
-day_to_int = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
-input_data = pd.DataFrame({
-    'hour': [input_hour],
-    'day_of_week': [day_to_int[input_day]]
-})
+le_target = LabelEncoder() y_encoded = le_target.fit_transform(y)
 
-# Make prediction
-prediction_encoded = model.predict(input_data)[0]
-prediction_label = le.inverse_transform([prediction_encoded])[0]
+Train model
+
+model = RandomForestClassifier(n_estimators=100, random_state=42) model.fit(X, y_encoded)
+
+Save model and encoders
+
+joblib.dump(model, "crime_model.pkl") joblib.dump(le_location, "location_encoder.pkl") joblib.dump(le_target, "target_encoder.pkl")
+
+Streamlit App
+
+st.title("Chicago Crime Type Predictor")
+
+st.subheader("Try Predicting a Crime Type") input_hour = st.slider("Select Hour of the Day", 0, 23, 12) input_day = st.selectbox("Select Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]) input_domestic = st.selectbox("Was it Domestic?", ["TRUE", "FALSE"]) input_arrest = st.selectbox("Was there an Arrest?", ["TRUE", "FALSE"]) input_community = st.number_input("Community Area (e.g. 25)", min_value=1, max_value=100, value=25) input_location = st.selectbox("Location Description", le_location.classes_)
+
+Map day to number
+
+day_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+
+Prepare input
+
+input_data = pd.DataFrame({ 'hour': [input_hour], 'day_of_week': [day_map[input_day]], 'Domestic': [input_domestic == "TRUE"], 'Arrest': [input_arrest == "TRUE"], 'Community Area': [input_community], 'Location Description': [le_location.transform([input_location])[0]] })
+
+Load model and encoders
+
+model = joblib.load("crime_model.pkl") le_target = joblib.load("target_encoder.pkl")
+
+Predict
+
+prediction_encoded = model.predict(input_data)[0] prediction_label = le_target.inverse_transform([prediction_encoded])[0]
 
 st.success(f"Predicted Crime Type: {prediction_label}")
-
-# Model training
-st.subheader("Train Crime Prediction Model")
-
-X = df[['hour', 'day_of_week']]
-y = df['Primary Type']
-
-# Encode labels
-from sklearn.preprocessing import LabelEncoder
-le = LabelEncoder()
-y_encoded = le.fit_transform(y)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
-
-model = RandomForestClassifier()
-model.fit(X_train, y_train)
-
-y_pred = model.predict(X_test)
-acc = accuracy_score(y_test, y_pred)
-
-st.write("Model Accuracy:" round(acc,2))
-
-# Save model
-model_file = "model.pkl"
-joblib.dump(model, model_file)
-
