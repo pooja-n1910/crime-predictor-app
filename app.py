@@ -12,8 +12,8 @@ st.title("Crime Data Analysis & Prediction App")
 
 @st.cache_data
 def load_data():
-df = pd.read_csv("chicago_crime_full.csv")
-    df = df[['date', 'primary_type', 'latitude', 'longitude']]
+    df = pd.read_csv("chicago_crime_full.csv")
+    df = df[['date', 'primary_type']]  # Remove 'latitude' and 'longitude' if not in your dataset
     df.dropna(inplace=True)
 
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
@@ -22,7 +22,6 @@ df = pd.read_csv("chicago_crime_full.csv")
     df['day_of_week'] = df['date'].dt.dayofweek  # 0=Mon, 6=Sun
 
     return df
-
 # Model training
 st.subheader("Train Crime Prediction Model")
 import joblib
