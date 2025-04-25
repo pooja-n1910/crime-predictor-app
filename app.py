@@ -1,4 +1,10 @@
-import streamlit as st import pandas as pd import joblib from sklearn.preprocessing import LabelEncoder from sklearn.ensemble import RandomForestClassifier
+import streamlit as st
+import pandas as pd
+import joblib
+from sklearn.preprocessing import
+LabelEncoder 
+from sklearn.ensemble import 
+RandomForestClassifier
 
 Load data
 
